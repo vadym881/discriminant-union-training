@@ -1,63 +1,44 @@
-type CreateUserAction = {
-  type: "CREATE_USER";
-  payload: { name: string; age: number };
-};
+import { Admin } from "./unused-models/admin";
+import { Moderator } from "./unused-models/moderator";
+import { User } from "./user";
+import { UserManager } from "./user-manager";
 
-type DeleteUserAction = {
-  type: "DELETE_USER";
-  payload: { userId: number };
-};
-
-type UpdateUserAction = {
-  type: "UPDATE_USER";
-  payload: { userId: number; name?: string; age?: number };
-};
-
-type BlockUserAction = {
-  type: "BLOCK_USER";
-  payload: { userId: number; reason: string };
-};
-
-type Action =
-  | CreateUserAction
-  | DeleteUserAction
-  | UpdateUserAction
-  | BlockUserAction;
-
-function handleAction(action: Action): void {
-  switch (action.type) {
-    case "CREATE_USER":
-      console.log(
-        `Creating user: ${action.payload.name}, age: ${action.payload.age}`
-      );
+function handleActionRoleBased(
+  actor: User,
+  action: 'update' | 'block' | 'unblock' | 'delete',
+  targetId: number,
+  data?: { name?: string; age?: number; reason?: string }
+) {
+  switch (action) {
+    case 'update':
+      if (actor.userId === targetId) {
+        const user = UserManager.findUserById(targetId);
+        user?.updateProfile(data?.name, data?.age);
+      } else {
+        console.log('Access denied: can only update own profile.');
+      }
       break;
-    case "DELETE_USER":
-      console.log(`User with ID ${action.payload.userId} has been deleted.`);
+
+    case 'block':
+      UserManager.blockUser(actor, targetId, data?.reason || 'No reason');
       break;
-    case "UPDATE_USER":
-      const updates: string[] = [];
-      if (action.payload.name !== undefined)
-        updates.push(`name: ${action.payload.name}`);
-      if (action.payload.age !== undefined)
-        updates.push(`age: ${action.payload.age}`);
-      console.log(
-        `Updating user ${action.payload.userId} with: ${
-          updates.length ? updates.join(", ") : "no changes"
-        }`
-      );
+
+    case 'unblock':
+      UserManager.unblockUser(actor, targetId);
       break;
-    case "BLOCK_USER":
-      console.log(
-        `User with ID ${action.payload.userId} has been blocked. Reason: ${action.payload.reason}`
-      );
+
+    case 'delete':
+      UserManager.deleteUser(actor, targetId);
       break;
   }
 }
 
-handleAction({ type: "CREATE_USER", payload: { name: "Doofus", age: 25 } });
-handleAction({ type: "DELETE_USER", payload: { userId: 3 } });
-handleAction({ type: "UPDATE_USER", payload: { userId: 3, age: 26 } });
-handleAction({
-  type: "BLOCK_USER",
-  payload: { userId: 5, reason: "Violation of rules" },
-});
+const admin2 = UserManager.createUser('Alice', 28, 'admin');
+const mod2 = UserManager.createUser('Alex', 26, 'moderator');
+const user3 = UserManager.createUser('Max', 21);
+const user4 = UserManager.createUser('Diana', 23);
+
+handleActionRoleBased(admin2, 'block', user3.userId, { reason: 'Violation' });
+handleActionRoleBased(mod2, 'block', user4.userId, { reason: 'Spam' });
+handleActionRoleBased(user3, 'update', user3.userId, { name: 'Peter' });
+handleActionRoleBased(admin2, 'delete', user4.userId);
