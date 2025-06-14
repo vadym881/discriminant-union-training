@@ -1,54 +1,38 @@
-type User = {
-  username: string;
-  password: string;
-};
+import { login1 } from "./approaches/approach1";
+import { login2 } from "./approaches/approach2";
+import { login3 } from "./approaches/approach3";
+import { login4 } from "./approaches/approach4";
+import { Admin, ExternalUser, Guest, User } from "./models/models2";
 
-type Guest = {
-  sessionId: string;
-};
+// Approach 1 & 2
+const user1 = { username: "vadim", password: "pass123" };
+const guest1 = { sessionId: "sess-456" };
+const admin1 = { role: "admin", username: 'superuser', password: "adminpass" };
+const externalUser1 = { oauthToken: "oauth-789" };
 
-type Admin = {
-  role: "admin";
-  username: string;
-  password: string;
-};
+console.log(login1(user1));
+console.log(login1(guest1));
+console.log(login1(admin1));
+console.log(login1(externalUser1));
 
-type ExternalUser = {
-  oauthToken: string;
-};
+console.log(login2(user1));
+console.log(login2(guest1));
+console.log(login2(admin1));
+console.log(login2(externalUser1));
 
-// function login(entity: User | Guest | Admin): void {
-//   if ("username" in entity && !("role" in entity))
-//     console.log(`User ${entity.username} authorized.`);
-//   else if ("sessionId" in entity)
-//     console.log(`Guest authorized with session ${entity.sessionId}.`);
-//   else if ("role" in entity && entity.role === "admin")
-//     console.log(`Admin ${entity.username} authorized.`);
-//   else if ("oauthToken" in entity)
-//     console.log(`External user authorized with token ${entity.oauthToken}.`);
-// }
+// Approach 3 & 4
 
-function isUser(entity: any): entity is User {
-  return "username" in entity && "password" in entity && !("role" in entity);
-}
+const user2 = new User("vadim", "pass123");
+const guest2 = new Guest("sess-456");
+const admin2 = new Admin("superuser", "adminpass");
+const externalUser2 = new ExternalUser("oauth-789");
 
-function isGuest(entity: any): entity is Guest {
-  return "sessionId" in entity;
-}
+console.log(login3(user2));
+console.log(login3(guest2));
+console.log(login3(admin2));
+console.log(login3(externalUser2));
 
-function isAdmin(entity: any): entity is Admin {
-  return "role" in entity && entity.role === "admin";
-}
-
-function isExternalUser(entity: any): entity is ExternalUser {
-  return "oauthToken" in entity;
-}
-
-function login(entity: User | Guest | Admin | ExternalUser): void {
-  if (isUser(entity)) console.log(`User ${entity.username} authorized.`);
-  else if (isGuest(entity))
-    console.log(`Guest authorized with session ${entity.sessionId}.`);
-  else if (isAdmin(entity)) console.log(`Admin ${entity.username} authorized.`);
-  else if (isExternalUser(entity))
-    console.log(`External user authorized with token ${entity.oauthToken}.`);
-}
+console.log(login4(user2));
+console.log(login4(guest2));
+console.log(login4(admin2));
+console.log(login4(externalUser2));
